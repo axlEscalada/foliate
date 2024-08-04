@@ -240,7 +240,29 @@ const BookItem = GObject.registerClass({
             'remove': () => this.emit('remove-book', this.#item),
             'export': () => this.emit('export-book', this.#item),
             'info': () => this.emit('book-info', this.#item),
-        }))
+            "open-external-app": () => this.openWithExternalApp(),
+        }),
+      );
+    }
+    openWithExternalApp() {
+      if (!this.#item) return;
+
+      const file = getBooks().getBook(this.#item);
+      if (!file) return;
+
+      const path = file.get_path();
+      if (!path) return;
+
+      try {
+        GLib.spawn_command_line_async(`zathura "${path}"`);
+      } catch (e) {
+        console.error("Failed to open file with Zathura:", e);
+        // Optionally show an error dialog to the user
+        this.root.error(
+          _("Failed to Open"),
+          _("Could not open the file with Zathura"),
+        );
+      }
     }
     update(item, data, cover) {
         this.#item = item
